@@ -1,0 +1,507 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name"
+		},
+		"AzureSqlDatabase1": {
+			"type": "string"
+		},
+		"AzureBlobStorageUmich": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_copy_from_blob_to_raw_table')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "If Condition1",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Lookup Exist FIle Name",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@bool(equals(activity('Lookup Exist FIle Name').output.value[0].Source_Name, '2020_10_05_031439_merchant__umich_catalog_category_flat_store_1'))",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Copy data from Blob to Raw Table",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [
+										{
+											"name": "Source",
+											"value": "containerdata/outputFolder/umich_database/@{'2020_10_05_031439_merchant__umich_catalog_category_flat_store_1'}"
+										},
+										{
+											"name": "Destination",
+											"value": "dbo.raw_catalog_category_flat"
+										}
+									],
+									"typeProperties": {
+										"source": {
+											"type": "ParquetSource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink"
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ParquetUmich",
+											"type": "DatasetReference",
+											"parameters": {
+												"fileName": "2020_10_05_031439_merchant__umich_catalog_category_flat_store_1"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DW",
+											"type": "DatasetReference"
+										}
+									]
+								},
+								{
+									"name": "Stored procedure to update log",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data from Blob to Raw Table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[insert_log_upsert_event]",
+										"storedProcedureParameters": {
+											"DataFactory_Name": {
+												"value": {
+													"value": "@pipeline().DataFactory",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Destination_Table_Name": {
+												"value": {
+													"value": "[[dbo].[pipeline_log]",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Pipeline_Name": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Source_Name": {
+												"value": {
+													"value": "2020_10_05_031439_merchant__umich_catalog_category_flat_store_1",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"TriggerTime": {
+												"value": {
+													"value": "@pipeline().TriggerTime",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('AzureSqlDatabase1')]",
+										"type": "LinkedServiceReference"
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "Stored procedure1",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[insert_log_upsert_event]",
+										"storedProcedureParameters": {
+											"DataFactory_Name": {
+												"value": {
+													"value": "@pipeline().DataFactory",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Destination_Table_Name": {
+												"value": {
+													"value": "Can't insert",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Pipeline_Name": {
+												"value": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"Source_Name": {
+												"value": {
+													"value": "2020_10_05_031439_merchant__umich_catalog_category_flat_store_1",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"TriggerTime": {
+												"value": {
+													"value": "@pipeline().TriggerTime",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "[parameters('AzureSqlDatabase1')]",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Lookup Exist FIle Name",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select  [Source_Name]  FROM [dbo].[pipeline_log]",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "WaterMarkTable",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					}
+				],
+				"annotations": [],
+				"lastPublishTime": "2020-10-20T14:06:18Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/WaterMarkTable')]",
+				"[concat(variables('factoryId'), '/datasets/ParquetUmich')]",
+				"[concat(variables('factoryId'), '/datasets/DW')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/WaterMarkTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('AzureSqlDatabase1')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "watermark"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ParquetUmich')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('AzureBlobStorageUmich')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"fileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@concat(dataset().fileName, '.parquet')",
+							"type": "Expression"
+						},
+						"folderPath": "outputFolder/umich_database",
+						"container": "containerdata"
+					},
+					"compressionCodec": "none"
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DW')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('AzureSqlDatabase1')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "entity_id",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "attribute_set_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "parent_id",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "created_at",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "updated_at",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "path",
+						"type": "varchar"
+					},
+					{
+						"name": "position",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "level",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "children_count",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "store_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "all_children",
+						"type": "text"
+					},
+					{
+						"name": "available_sort_by",
+						"type": "text"
+					},
+					{
+						"name": "children",
+						"type": "text"
+					},
+					{
+						"name": "custom_apply_to_products",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "custom_design",
+						"type": "varchar"
+					},
+					{
+						"name": "custom_design_from",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "custom_design_to",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "custom_layout_update",
+						"type": "text"
+					},
+					{
+						"name": "custom_use_parent_settings",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "default_sort_by",
+						"type": "varchar"
+					},
+					{
+						"name": "description",
+						"type": "text"
+					},
+					{
+						"name": "display_mode",
+						"type": "varchar"
+					},
+					{
+						"name": "filter_price_range",
+						"type": "decimal",
+						"precision": 12,
+						"scale": 4
+					},
+					{
+						"name": "image",
+						"type": "varchar"
+					},
+					{
+						"name": "include_in_menu",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "is_active",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "is_anchor",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "landing_page",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "meta_description",
+						"type": "text"
+					},
+					{
+						"name": "meta_keywords",
+						"type": "text"
+					},
+					{
+						"name": "meta_title",
+						"type": "varchar"
+					},
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "page_layout",
+						"type": "varchar"
+					},
+					{
+						"name": "path_in_store",
+						"type": "text"
+					},
+					{
+						"name": "sub_account",
+						"type": "text"
+					},
+					{
+						"name": "url_key",
+						"type": "varchar"
+					},
+					{
+						"name": "url_path",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "raw_catalog_category_flat"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
