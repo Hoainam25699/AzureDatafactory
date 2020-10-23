@@ -1,0 +1,43 @@
+{
+	"name": "JSON_item_query",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorageUmich",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "item_query.json",
+				"folderPath": "inputFolder",
+				"container": "containerdata"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"tableName": {
+					"type": "string"
+				},
+				"query": {
+					"type": "string"
+				},
+				"old_watermark_query": {
+					"type": "string"
+				},
+				"new_watermark_query": {
+					"type": "string"
+				},
+				"watermark_column": {
+					"type": "string"
+				},
+				"watermark_type": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,30 @@
+{
+	"name": "ParquetUmich",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorageUmich",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@concat(dataset().fileName, '.parquet')",
+					"type": "Expression"
+				},
+				"folderPath": "outputFolder/umich_database",
+				"container": "containerdata"
+			},
+			"compressionCodec": "none"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

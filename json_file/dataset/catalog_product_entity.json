@@ -1,0 +1,31 @@
+{
+	"name": "catalog_product_entity",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorageUmich",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "catalog_product_entity_type.json",
+				"folderPath": "inputFolder",
+				"container": "containerdata"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"tableName": {
+					"type": "string"
+				},
+				"query": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
