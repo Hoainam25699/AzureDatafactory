@@ -1,0 +1,30 @@
+{
+	"name": "Input_JSON_Load_Table_Need_Transform",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorageUmich",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "need_transform_refine.json",
+				"folderPath": "inputFolder",
+				"container": "containerdata"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"tableName": {
+					"type": "string"
+				},
+				"query": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}

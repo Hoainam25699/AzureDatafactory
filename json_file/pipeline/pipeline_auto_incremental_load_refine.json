@@ -27,7 +27,7 @@
 						}
 					},
 					"dataset": {
-						"referenceName": "catalog_product_entity",
+						"referenceName": "Input_JSON_Load_Table_Need_Transform",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
@@ -73,12 +73,14 @@
 									}
 								},
 								"sink": {
-									"type": "ParquetSink",
+									"type": "DelimitedTextSink",
 									"storeSettings": {
 										"type": "AzureBlobStorageWriteSettings"
 									},
 									"formatSettings": {
-										"type": "ParquetWriteSettings"
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
 									}
 								},
 								"enableStaging": false,
@@ -99,7 +101,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "ParquetUmich",
+									"referenceName": "CSVFileBlob",
 									"type": "DatasetReference",
 									"parameters": {
 										"fileName": {
