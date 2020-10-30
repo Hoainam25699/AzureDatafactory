@@ -1,0 +1,36 @@
+{
+	"name": "Json_verify_data",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorageUmich",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "verify_data.json",
+				"folderPath": "inputFolder",
+				"container": "containerdata"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"tableName": {
+					"type": "string"
+				},
+				"key_column": {
+					"type": "string"
+				},
+				"mandatory_field": {
+					"type": "string"
+				},
+				"merchant_id": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
